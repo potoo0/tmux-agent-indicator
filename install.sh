@@ -157,6 +157,7 @@ chmod +x "$TARGET_DIR/agent-indicator.tmux" "$TARGET_DIR/scripts/"*.sh "$TARGET_
 if [ "$INSTALL_CLAUDE" = true ] || [ "$UNINSTALL_CLAUDE" = true ]; then
     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
     CLAUDE_SETTINGS="$CLAUDE_DIR/settings.json"
+    CLAUDE_TEMPLATE="$TARGET_DIR/hooks/claude-hooks.json"
     mkdir -p "$CLAUDE_DIR"
     if [ ! -f "$CLAUDE_SETTINGS" ] && [ "$INSTALL_CLAUDE" = true ]; then
         printf '{}\n' > "$CLAUDE_SETTINGS"
@@ -174,34 +175,56 @@ if [ "$INSTALL_CLAUDE" = true ] || [ "$UNINSTALL_CLAUDE" = true ]; then
             CLAUDE_MODE="install"
         fi
 
-        python3 - "$CLAUDE_SETTINGS" "$TARGET_DIR" "$CLAUDE_MODE" <<'PY'
+        python3 - "$CLAUDE_SETTINGS" "$CLAUDE_TEMPLATE" "$TARGET_DIR" "$CLAUDE_MODE" <<'PY'
 import json
 import pathlib
 import sys
 
 settings_path = pathlib.Path(sys.argv[1])
-target_dir = sys.argv[2]
-mode = sys.argv[3]
+template_path = pathlib.Path(sys.argv[2])
+target_dir = sys.argv[3]
+mode = sys.argv[4]
+default_install_dir = "$HOME/.tmux/plugins/tmux-agent-indicator"
 
 try:
     settings = json.loads(settings_path.read_text(encoding="utf-8"))
 except Exception:
     settings = {}
 
+if not isinstance(settings, dict):
+    settings = {}
+
 hooks = settings.setdefault("hooks", {})
+if not isinstance(hooks, dict):
+    hooks = {}
 
 def is_plugin_command(command):
     return "scripts/agent-state.sh" in command and "--agent claude --state" in command
 
 for event in list(hooks.keys()):
     entries = hooks.get(event, [])
+    if not isinstance(entries, list):
+        continue
+
     cleaned_entries = []
     for entry in entries:
+        if not isinstance(entry, dict):
+            cleaned_entries.append(entry)
+            continue
+
         hook_items = entry.get("hooks", [])
+        if not isinstance(hook_items, list):
+            cleaned_entries.append(entry)
+            continue
+
         cleaned_hook_items = []
         for hook_item in hook_items:
+            if not isinstance(hook_item, dict):
+                cleaned_hook_items.append(hook_item)
+                continue
+
             cmd = hook_item.get("command", "")
-            if is_plugin_command(cmd):
+            if isinstance(cmd, str) and is_plugin_command(cmd):
                 continue
             cleaned_hook_items.append(hook_item)
 
@@ -220,28 +243,14 @@ for event in list(hooks.keys()):
     else:
         hooks.pop(event, None)
 
-events = {
-    "UserPromptSubmit": [
-        f"\"${{TMUX_AGENT_INDICATOR_DIR:-{target_dir}}}\"/scripts/agent-state.sh --agent claude --state off",
-        f"\"${{TMUX_AGENT_INDICATOR_DIR:-{target_dir}}}\"/scripts/agent-state.sh --agent claude --state running",
-    ],
-    "PermissionRequest": [
-        f"\"${{TMUX_AGENT_INDICATOR_DIR:-{target_dir}}}\"/scripts/agent-state.sh --agent claude --state needs-input",
-    ],
-    "Stop": [
-        f"\"${{TMUX_AGENT_INDICATOR_DIR:-{target_dir}}}\"/scripts/agent-state.sh --agent claude --state done",
-    ],
-}
+template_text = template_path.read_text(encoding="utf-8").replace(default_install_dir, target_dir)
+template = json.loads(template_text)
+template_hooks = template.get("hooks", {}) if isinstance(template, dict) else {}
 
 if mode == "install":
-    for event, commands in events.items():
-        entries = hooks.get(event, [])
-        for command in commands:
-            entries.append({
-                "matcher": "",
-                "hooks": [{"type": "command", "command": command}],
-            })
-        hooks[event] = entries
+    for event, entries in template_hooks.items():
+        if isinstance(entries, list):
+            hooks.setdefault(event, []).extend(entries)
 
 settings["hooks"] = hooks
 
@@ -253,6 +262,7 @@ fi
 if [ "$INSTALL_CODEX" = true ] || [ "$UNINSTALL_CODEX" = true ]; then
     CODEX_DIR="${CODEX_CONFIG_DIR:-$HOME/.codex}"
     CODEX_HOOKS="$CODEX_DIR/hooks.json"
+    CODEX_TEMPLATE="$TARGET_DIR/hooks/codex-hooks.json"
     CODEX_CONFIG="$CODEX_DIR/config.toml"
     mkdir -p "$CODEX_DIR"
     if [ ! -f "$CODEX_HOOKS" ] && [ "$INSTALL_CODEX" = true ]; then
@@ -272,15 +282,16 @@ if [ "$INSTALL_CODEX" = true ] || [ "$UNINSTALL_CODEX" = true ]; then
             CODEX_MODE="install"
         fi
 
-        python3 - "$CODEX_HOOKS" "$TARGET_DIR" "$CODEX_MODE" <<'PY'
+        python3 - "$CODEX_HOOKS" "$CODEX_TEMPLATE" "$TARGET_DIR" "$CODEX_MODE" <<'PY'
 import json
 import pathlib
-import shlex
 import sys
 
 hooks_path = pathlib.Path(sys.argv[1])
-target_dir = sys.argv[2]
-mode = sys.argv[3]
+template_path = pathlib.Path(sys.argv[2])
+target_dir = sys.argv[3]
+mode = sys.argv[4]
+default_install_dir = "$HOME/.tmux/plugins/tmux-agent-indicator"
 
 try:
     settings = json.loads(hooks_path.read_text(encoding="utf-8"))
@@ -339,48 +350,14 @@ for event in list(hooks.keys()):
     else:
         hooks.pop(event, None)
 
-state_script = shlex.quote(f"{target_dir}/scripts/agent-state.sh")
-
-events = {
-    "UserPromptSubmit": [
-        {
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": f"{state_script} --agent codex --state running",
-                    "statusMessage": "tmux: codex running",
-                }
-            ]
-        }
-    ],
-    "PermissionRequest": [
-        {
-            "matcher": "*",
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": f"{state_script} --agent codex --state needs-input",
-                    "statusMessage": "tmux: codex needs input",
-                }
-            ]
-        }
-    ],
-    "Stop": [
-        {
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": f"{state_script} --agent codex --state done",
-                    "statusMessage": "tmux: codex done",
-                }
-            ]
-        }
-    ],
-}
+template_text = template_path.read_text(encoding="utf-8").replace(default_install_dir, target_dir)
+template = json.loads(template_text)
+template_hooks = template.get("hooks", {}) if isinstance(template, dict) else {}
 
 if mode == "install":
-    for event, entries in events.items():
-        hooks.setdefault(event, []).extend(entries)
+    for event, entries in template_hooks.items():
+        if isinstance(entries, list):
+            hooks.setdefault(event, []).extend(entries)
 
 settings["hooks"] = hooks
 

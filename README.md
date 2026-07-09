@@ -342,6 +342,8 @@ Default template files:
 - `hooks/claude-hooks.json`
 - `hooks/codex-hooks.json`
 
+The installer uses these templates as the source for Claude and Codex hook configuration, replacing the default plugin path with the selected install target.
+
 They map:
 - `UserPromptSubmit` -> `running`
 - `PermissionRequest` -> `needs-input`
