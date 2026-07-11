@@ -72,6 +72,12 @@ get_window_option() {
     tmux_cmd show-window-option -v -t "$window_id" "$option" 2>/dev/null || true
 }
 
+get_pane_option() {
+    local pane_id="$1"
+    local option="$2"
+    tmux_cmd show-options -pv -t "$pane_id" "$option" 2>/dev/null || true
+}
+
 run_indicator_capture() {
     local pane_id="${1:-$PANE}"
     local out_file="$TEST_TMP_DIR/indicator-${RANDOM}.out"

@@ -54,6 +54,8 @@ Core assertions:
 
 ```bash
 tmux -L "$SOCK" show-window-options -vt "$WIN" | rg 'pane-active-border-style|window-status'
+tmux -L "$SOCK" show-options -pvt "$PANE" @agent_state
+tmux -L "$SOCK" show-window-option -vt "$WIN" @agent_state
 tmux -L "$SOCK" run-shell "TMUX_PANE=$PANE \"$PWD/scripts/indicator.sh\" > /tmp/agent-indicator.out"
 cat /tmp/agent-indicator.out
 ```
@@ -166,6 +168,7 @@ rm -f /tmp/agent-indicator.out
    - With `@agent-indicator-reset-on-focus on`, done pane styling clears when focusing pane/window.
 4. Validate empty-value semantics (`set -g @agent-indicator-done-bg ''` should skip background changes).
 5. Validate status icon appears when agent state/process is active.
+6. Validate `@agent_state` and `@agent_name` are available in pane/window formats, including `choose-tree` formats.
 
 Optional screenshot capture:
 

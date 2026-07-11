@@ -18,6 +18,16 @@ The plugin tracks three states per pane: `running`, `needs-input`, and `done`.
 
 State transitions are driven by hooks. Claude Code and Codex fire hooks on prompt submit, permission request, and stop. OpenCode uses its plugin system. Any other agent can call `agent-state.sh` directly from a wrapper script or hook.
 
+The current state is also exposed as tmux user options on both the target pane and its window:
+- `@agent_state`: `running`, `needs-input`, or `done`
+- `@agent_name`: agent name such as `claude`, `codex`, or `opencode`
+
+These options can be used in tmux formats such as `choose-tree`:
+
+```tmux
+choose-tree -Zw -F '#{?window_format,#{?#{==:#{@agent_state},needs-input},#[fg=#f38ba8]⚠ #[default],}#{window_name},#{pane_current_command}}'
+```
+
 Each state can change:
 - Pane border color
 - Pane background (supported but disabled by default to avoid visual noise)

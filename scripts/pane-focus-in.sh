@@ -10,6 +10,8 @@ fi
 
 # shellcheck source=scripts/lib/tmux.sh
 source "$script_dir/lib/tmux.sh"
+# shellcheck source=scripts/lib/agent-options.sh
+source "$script_dir/lib/agent-options.sh"
 
 target_is_focused() {
     local pane_id="$1"
@@ -106,17 +108,21 @@ if [ "$window_done" = "1" ] || [ "$state" = "done" ] || [ "$done_marker" = "1" ]
     tmux_unset_env "$done_window_key"
     tmux_unset_env "$state_key"
     tmux_unset_env "$agent_key"
+    agent_clear_pane_options "$pane_id"
 
     # Clear stale done state markers for any pane in the done window.
     while IFS= read -r line; do
         [ -z "$line" ] && continue
         pane_prefix="${line%%_DONE_WINDOW=*}"
+        stale_pane_id="${pane_prefix#TMUX_AGENT_PANE_}"
         tmux_unset_env "${pane_prefix}_DONE"
         tmux_unset_env "${pane_prefix}_DONE_WINDOW"
         tmux_unset_env "${pane_prefix}_PENDING_RESET"
         tmux_unset_env "${pane_prefix}_STATE"
         tmux_unset_env "${pane_prefix}_AGENT"
+        agent_clear_pane_options "$stale_pane_id"
     done < <(tmux show-environment -g | rg "^TMUX_AGENT_PANE_.*_DONE_WINDOW=${done_window}$" || true)
+    agent_refresh_window_options "$done_window"
 
     # Stop animation if no panes are still running.
     if ! tmux show-environment -g 2>/dev/null | grep -q '_STATE=running'; then

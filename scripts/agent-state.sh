@@ -16,6 +16,8 @@ fi
 
 # shellcheck source=scripts/lib/tmux.sh
 source "$script_dir/lib/tmux.sh"
+# shellcheck source=scripts/lib/agent-options.sh
+source "$script_dir/lib/agent-options.sh"
 
 is_enabled() {
     case "$1" in
@@ -188,7 +190,7 @@ start_animation() {
 
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    nohup bash "$script_dir/animation.sh" >/dev/null 2>&1 &
+    nohup bash "$script_dir/animation.sh" </dev/null >/dev/null 2>&1 &
     disown
 }
 
@@ -384,6 +386,8 @@ case "$state" in
         tmux_set_env "$state_key" "$state"
         tmux_set_env "$agent_key" "$agent"
         tmux_set_env "TMUX_AGENT_ACTIVE_PANE_${agent}" "$pane_id"
+        agent_set_pane_options "$pane_id" "$state" "$agent"
+        agent_refresh_window_options "$window_id"
 
         if [ "$pane_id" != "$active_pane_id" ]; then
             if is_enabled "$background_enabled"; then
@@ -426,6 +430,8 @@ case "$state" in
         tmux_set_env "$state_key" "$state"
         tmux_set_env "$agent_key" "$agent"
         tmux_set_env "TMUX_AGENT_ACTIVE_PANE_${agent}" "$pane_id"
+        agent_set_pane_options "$pane_id" "$state" "$agent"
+        agent_refresh_window_options "$window_id"
 
         if [ "$pane_id" != "$active_pane_id" ]; then
             if is_enabled "$background_enabled"; then
@@ -465,6 +471,8 @@ case "$state" in
         tmux_set_env "$done_key" "1"
         tmux_set_env "$done_window_key" "$window_id"
         tmux_set_env "TMUX_AGENT_ACTIVE_PANE_${agent}" "$pane_id"
+        agent_set_pane_options "$pane_id" "$state" "$agent"
+        agent_refresh_window_options "$window_id"
 
         if [ "$pane_id" != "$active_pane_id" ]; then
             if is_enabled "$background_enabled"; then
@@ -504,6 +512,8 @@ case "$state" in
             tmux_unset_env "$done_window_key"
             tmux_unset_env "$state_key"
             tmux_unset_env "$agent_key"
+            agent_clear_pane_options "$pane_id"
+            agent_refresh_window_options "$window_id"
         fi
         ;;
     off)
@@ -515,6 +525,8 @@ case "$state" in
         tmux_unset_env "$state_key"
         tmux_unset_env "$agent_key"
         tmux_unset_env "TMUX_AGENT_ACTIVE_PANE_${agent}"
+        agent_clear_pane_options "$pane_id"
+        agent_refresh_window_options "$window_id"
         reset_pane_style "$pane_id"
         restore_active_border_style "$window_id"
         ;;
