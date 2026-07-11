@@ -12,6 +12,7 @@ WIN=""
 OTHER_PANE=""
 OTHER_WIN=""
 TEST_TMP_FILES=()
+TEST_TMP_DIR=""
 
 tmux_cmd() {
     env -u TMUX tmux -L "$SOCK" "$@"
@@ -29,11 +30,16 @@ cleanup_test_server() {
     for path in "${TEST_TMP_FILES[@]:-}"; do
         rm -f "$path" >/dev/null 2>&1 || true
     done
+    if [ -n "${TEST_TMP_DIR:-}" ]; then
+        rm -rf "$TEST_TMP_DIR" >/dev/null 2>&1 || true
+    fi
 }
 
 setup_test_server() {
     local name="${1:-test}"
     SOCK="agent-test-${name}-$$"
+    TEST_TMP_DIR="/tmp/tmux-agent-indicator-${SOCK}"
+    mkdir -p "$TEST_TMP_DIR"
 
     tmux_cmd -f /dev/null new-session -d -s ai -n main
     tmux_cmd set -g status-right '#{agent_indicator} | %H:%M'
@@ -68,10 +74,13 @@ get_window_option() {
 
 run_indicator_capture() {
     local pane_id="${1:-$PANE}"
-    local out_file="/tmp/tmux-agent-indicator-${SOCK}-${RANDOM}.out"
+    local out_file="$TEST_TMP_DIR/indicator-${RANDOM}.out"
     register_tmp_file "$out_file"
     tmux_cmd run-shell "TMUX_PANE=$pane_id \"$REPO_ROOT/scripts/indicator.sh\" > \"$out_file\""
-    sleep 0.05
+    for _ in $(seq 1 20); do
+        [ -f "$out_file" ] && break
+        sleep 0.05
+    done
     cat "$out_file" 2>/dev/null || true
 }
 

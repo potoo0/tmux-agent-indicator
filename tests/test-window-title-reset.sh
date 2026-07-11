@@ -9,7 +9,9 @@ trap cleanup_test_server EXIT
 
 setup_test_server "window-title-reset"
 create_other_window
-tmux_cmd select-window -t ai:main
+# Window title styles are only applied to non-active windows, so switch away
+# before triggering needs-input on the main window.
+tmux_cmd select-window -t ai:other
 
 run_state needs-input
 before_style="$(get_window_option "$WIN" "window-status-style")"
