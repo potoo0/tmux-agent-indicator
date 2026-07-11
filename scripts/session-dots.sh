@@ -12,24 +12,9 @@ fi
 
 current="${1:-}"
 
-tmux_option_is_set() {
-    local option="$1"
-    local raw
-    raw=$(tmux show-option -gq "$option" 2>/dev/null || true)
-    [ -n "$raw" ]
-}
-
-tmux_get_option_or_default() {
-    local option="$1"
-    local default_value="$2"
-    local value
-    if tmux_option_is_set "$option"; then
-        value=$(tmux show-option -gqv "$option")
-        printf '%s\n' "$value"
-    else
-        printf '%s\n' "$default_value"
-    fi
-}
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/tmux.sh
+source "$script_dir/lib/tmux.sh"
 
 ACTIVE_SYMBOL=$(tmux_get_option_or_default "@agent-indicator-session-dots-active" "●")
 INACTIVE_SYMBOL=$(tmux_get_option_or_default "@agent-indicator-session-dots-inactive" "○")

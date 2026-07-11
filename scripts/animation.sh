@@ -20,17 +20,9 @@ if ! tmux list-sessions >/dev/null 2>&1; then
     exit 0
 fi
 
-tmux_get_option_or_default() {
-    local option="$1"
-    local default_value="$2"
-    local raw
-    raw=$(tmux show-option -gq "$option" 2>/dev/null || true)
-    if [ -n "$raw" ]; then
-        tmux show-option -gqv "$option"
-    else
-        printf '%s\n' "$default_value"
-    fi
-}
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/tmux.sh
+source "$script_dir/lib/tmux.sh"
 
 # Store our PID so agent-state.sh can kill us.
 tmux set-environment -g TMUX_AGENT_ANIMATION_PID "$$"

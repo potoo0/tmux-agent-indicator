@@ -3,18 +3,13 @@
 
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if ! command -v tmux >/dev/null 2>&1; then
     exit 0
 fi
 
-tmux_get_env() {
-    local key="$1"
-    tmux show-environment -g "$key" 2>/dev/null | sed 's/^[^=]*=//' || true
-}
-
-tmux_unset_env() {
-    tmux set-environment -gu "$1" 2>/dev/null || true
-}
+# shellcheck source=scripts/lib/tmux.sh
+source "$script_dir/lib/tmux.sh"
 
 target_is_focused() {
     local pane_id="$1"

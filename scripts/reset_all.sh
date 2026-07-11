@@ -11,14 +11,9 @@ if ! tmux display-message -p '#{session_name}' >/dev/null 2>&1; then
     exit 0
 fi
 
-tmux_get_env() {
-    local key="$1"
-    tmux show-environment -g "$key" 2>/dev/null | sed 's/^[^=]*=//' || true
-}
-
-tmux_unset_env() {
-    tmux set-environment -gu "$1" 2>/dev/null || true
-}
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/tmux.sh
+source "$script_dir/lib/tmux.sh"
 
 reset_window_option() {
     local window_id="$1"

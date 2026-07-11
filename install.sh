@@ -142,14 +142,14 @@ if [ "$INSTALL_OPENCODE" = true ] && [ "$UNINSTALL_OPENCODE" = false ]; then
     fi
 fi
 
-mkdir -p "$TARGET_DIR/scripts" "$TARGET_DIR/hooks" "$TARGET_DIR/plugins"
+mkdir -p "$TARGET_DIR"
 
 cp "$SCRIPT_DIR/agent-indicator.tmux" "$TARGET_DIR/"
 cp "$SCRIPT_DIR/README.md" "$TARGET_DIR/"
 cp "$SCRIPT_DIR/LICENSE" "$TARGET_DIR/"
-cp "$SCRIPT_DIR/scripts/"*.sh "$TARGET_DIR/scripts/"
-cp "$SCRIPT_DIR/hooks/"*.json "$TARGET_DIR/hooks/"
-cp "$SCRIPT_DIR/plugins/"*.js "$TARGET_DIR/plugins/"
+cp -rp "$SCRIPT_DIR/scripts" "$TARGET_DIR/"
+cp -rp "$SCRIPT_DIR/hooks" "$TARGET_DIR/"
+cp -rp "$SCRIPT_DIR/plugins" "$TARGET_DIR/"
 cp "$SCRIPT_DIR/setup.sh" "$TARGET_DIR/"
 
 chmod +x "$TARGET_DIR/agent-indicator.tmux" "$TARGET_DIR/scripts/"*.sh "$TARGET_DIR/setup.sh"
