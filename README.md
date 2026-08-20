@@ -109,6 +109,8 @@ set -g @minimal-tmux-status-right '#{agent_indicator} #(gitmux "#{pane_current_p
 
 Optional visual session indicator in the status bar. Shows all sessions as symbols with the current one highlighted. Sessions where agents need attention (`needs-input` or `done` state) are highlighted in a different color.
 
+Includes code from [tmux-session-dots](https://github.com/jtmcginty/tmux-session-dots) by [Jack McGinty](https://github.com/jtmcginty), used under the [MIT License](licenses/tmux-session-dots.txt).
+
 Example with 4 sessions, second is current, fourth needs attention: `○●○●`
 
 With emoji symbols:

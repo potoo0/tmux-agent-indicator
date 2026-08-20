@@ -150,6 +150,7 @@ cp "$SCRIPT_DIR/LICENSE" "$TARGET_DIR/"
 cp -rp "$SCRIPT_DIR/scripts" "$TARGET_DIR/"
 cp -rp "$SCRIPT_DIR/hooks" "$TARGET_DIR/"
 cp -rp "$SCRIPT_DIR/plugins" "$TARGET_DIR/"
+cp -rp "$SCRIPT_DIR/licenses" "$TARGET_DIR/"
 cp "$SCRIPT_DIR/setup.sh" "$TARGET_DIR/"
 
 chmod +x "$TARGET_DIR/agent-indicator.tmux" "$TARGET_DIR/scripts/"*.sh "$TARGET_DIR/setup.sh"
