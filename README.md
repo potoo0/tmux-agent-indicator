@@ -46,7 +46,7 @@ States reset when you focus the pane/window, or on the next transition.
 
 ## Requirements
 
-tmux 3.0+, bash 4+
+tmux 3.1+, bash 4+
 
 ## Installation
 

@@ -147,25 +147,18 @@ restore_active_border_style() {
     restore_window_option "$window_id" "pane-active-border-style" "$orig_key"
 }
 
+# Style panes via the pane-scoped window-style option rather than
+# `select-pane -P`: select-pane also makes the target pane active, which can
+# steal focus or disturb zoom state when hooks run without a client context.
 reset_pane_style() {
     local pane_id="$1"
-    local active
-    active=$(tmux display-message -p '#{pane_id}')
-    tmux select-pane -t "$pane_id" -P "bg=default"
-    if [ "$pane_id" != "$active" ]; then
-        tmux select-pane -t "$active"
-    fi
+    tmux set-option -p -t "$pane_id" window-style "bg=default"
 }
 
 apply_pane_style() {
     local pane_id="$1"
     local bg="$2"
-    local active
-    active=$(tmux display-message -p '#{pane_id}')
-    tmux select-pane -t "$pane_id" -P "bg=$bg"
-    if [ "$pane_id" != "$active" ]; then
-        tmux select-pane -t "$active"
-    fi
+    tmux set-option -p -t "$pane_id" window-style "bg=$bg"
 }
 
 pane_exists() {

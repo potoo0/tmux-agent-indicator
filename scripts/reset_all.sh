@@ -42,13 +42,11 @@ fi
 tmux_unset_env "TMUX_AGENT_ANIMATION_PID"
 tmux_unset_env "TMUX_AGENT_ANIMATION_FRAME"
 
-# Reset all pane backgrounds
-active_pane=$(tmux display-message -p '#{pane_id}')
+# Reset all pane backgrounds without changing the active pane.
 while IFS= read -r pane_id; do
     [ -z "$pane_id" ] && continue
-    tmux select-pane -t "$pane_id" -P "bg=default" 2>/dev/null || true
+    tmux set-option -p -t "$pane_id" window-style "bg=default" 2>/dev/null || true
 done < <(tmux list-panes -a -F '#{pane_id}')
-tmux select-pane -t "$active_pane" 2>/dev/null || true
 
 # Restore saved window options and reset borders
 while IFS= read -r window_id; do
