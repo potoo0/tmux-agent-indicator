@@ -117,7 +117,6 @@ if [ "$window_done" = "1" ] || [ "$state" = "done" ] || [ "$done_marker" = "1" ]
         stale_pane_id="${pane_prefix#TMUX_AGENT_PANE_}"
         tmux_unset_env "${pane_prefix}_DONE"
         tmux_unset_env "${pane_prefix}_DONE_WINDOW"
-        tmux_unset_env "${pane_prefix}_PENDING_RESET"
         tmux_unset_env "${pane_prefix}_STATE"
         tmux_unset_env "${pane_prefix}_AGENT"
         agent_clear_pane_options "$stale_pane_id"
