@@ -309,7 +309,7 @@ Tmux supports:
 
 ## Notifications
 
-State transitions trigger a `tmux display-message` notification. Enabled by default for `needs-input` and `done` states.
+State transitions trigger a `tmux display-message` notification. Enabled by default for `needs-input` and `done` states. Panes continue rendering while the notification is displayed.
 
 ```tmux
 # Disable notifications entirely

@@ -285,9 +285,9 @@ notify_state_change() {
     message="${message//\#\{window_index\}/$window_index}"
 
     if [ -n "$duration" ] && [ "$duration" != "0" ]; then
-        tmux display-message -d "$duration" "$message" || true
+        tmux display-message -C -d "$duration" "$message" || true
     else
-        tmux display-message "$message" || true
+        tmux display-message -C "$message" || true
     fi
 
     local ext_cmd
